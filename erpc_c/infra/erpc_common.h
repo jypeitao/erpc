@@ -78,7 +78,15 @@ enum _erpc_status
     kErpcStatus_NestedCallFailure,
 
     //! When sending address from bigger architecture to smaller.
-    kErpcStatus_BadAddressScale
+    kErpcStatus_BadAddressScale,
+
+    //! Spp related
+    kErpcStatus_Spp_Already_Initialized = 1000,
+    kErpcStatus_Spp_InitializationFailed,
+    kErpcStatus_Spp_OpenFailed,
+    kErpcStatus_Spp_Send_Failed,
+    kErpcStatus_Spp_Not_initialized,
+    kErpcStatus_Spp_Implementation_Not_Found
 };
 
 /*! @brief Type used for all status and error return values. */
