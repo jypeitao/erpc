@@ -88,6 +88,10 @@ EW*.tmp
 DerivedData/
 Build/
 
+# clion
+.idea
+cmake-build-debug/
+
 # Generated output
 erpcgen-output
 *.stackdump
