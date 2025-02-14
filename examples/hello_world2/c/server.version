@@ -1,0 +1,8 @@
+{
+	global:
+	    *hello_world_init_server*;
+	    *hello_world_start_server*;
+	    *hello_world_stop_server*;
+	    *hello_world_destroy_server*;
+	local: *;
+};

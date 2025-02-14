@@ -1,0 +1,8 @@
+{
+	global:
+	    hello_world_init_client;
+	    hello_world_destroy_client;
+	    hello_world_call_printText;
+	    hello_world_call_stopServer;
+	local: *;
+};
