@@ -10,4 +10,5 @@ endif()
 
 if (CONFIG_ERPC_HELLO_WORLD)
     add_subdirectory(${ERPC_EXAMPLES}/hello_world)
+    add_subdirectory(${ERPC_EXAMPLES}/hello_world2)
 endif()
