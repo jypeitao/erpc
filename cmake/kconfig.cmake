@@ -123,7 +123,9 @@ if(DEFINED FORCED_CONF_FILE)
   list(APPEND input_configs_flags --forced-input-configs)
 endif()
 
-cmake_path(GET AUTOCONF_H PARENT_PATH autoconf_h_path)
+#cmake_path(GET AUTOCONF_H PARENT_PATH autoconf_h_path)
+get_filename_component(autoconf_h_path "${AUTOCONF_H}" DIRECTORY)
+
 if(NOT EXISTS ${autoconf_h_path})
   file(MAKE_DIRECTORY ${autoconf_h_path})
 endif()
