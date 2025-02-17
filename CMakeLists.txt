@@ -17,12 +17,17 @@ set(ERPC_C ${ERPC_BASE}/erpc_c)
 set(ERPC_TEST ${ERPC_BASE}/test)
 set(ERPC_EXAMPLES ${ERPC_BASE}/examples)
 
+option(USE_KCONFIG "Use kconfig or not " ON)
+
 ###############################################################################
 # Includes required modules
 ###############################################################################
 include(${ERPC_BASE}/cmake/extensions.cmake)
 include(${ERPC_BASE}/cmake/python.cmake)
-include(${ERPC_BASE}/cmake/kconfig.cmake)
+if(USE_KCONFIG)
+    include(${ERPC_BASE}/cmake/kconfig.cmake)
+endif()
+
 include(${ERPC_BASE}/cmake/erpc_utils.cmake)
 
 ###############################################################################
@@ -34,7 +39,6 @@ if(CONFIG_REQUIRE_ERPCGEN)
         set(ERPCGEN_EXECUTABLE $<TARGET_FILE:erpcgen>)
     else()
         find_program(ERPCGEN_EXECUTABLE NAMES erpcgen)
-
         if(NOT ERPCGEN_EXECUTABLE)
             message(FATAL_ERROR "It was not possible to find the erpcgen executable. Enable ERPC_GENERATOR in Kconfig to build erpcgen from source or add 'erpcgen' to PATH.")
         endif()
