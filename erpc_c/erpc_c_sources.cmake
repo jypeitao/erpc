@@ -45,6 +45,7 @@ set(ERPC_C_HEADERS
 	  ${ERPC_C}/transports/erpc_inter_thread_buffer_transport.hpp
 	  ${ERPC_C}/transports/erpc_serial_transport.hpp
 	  ${ERPC_C}/transports/erpc_tcp_transport.hpp
+	  ${ERPC_C}/transports/erpc_spp_transport.hpp
 )
 
 set(ERPC_C_SOURCES
@@ -75,5 +76,6 @@ set(ERPC_C_SOURCES
 
 	${ERPC_C}/transports/erpc_inter_thread_buffer_transport.cpp
 	${ERPC_C}/transports/erpc_tcp_transport.cpp
+	${ERPC_C}/transports/erpc_spp_transport.cpp
 	${ERPC_C}/transports/erpc_serial_transport.cpp
 )
