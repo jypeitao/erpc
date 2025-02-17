@@ -29,6 +29,11 @@ extern "C" {
 #if defined(__MINGW32__)
 #include <ws2tcpip.h>
 #include <ws2def.h>
+#elif defined(__ANDROID__)
+#include <sys/endian.h>
+#include <linux/in.h>
+#include <netdb.h>
+#include <netinet/tcp.h>
 #else
 #include <netdb.h>
 #include <netinet/tcp.h>

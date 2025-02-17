@@ -34,6 +34,9 @@ ERPC_MANUALLY_CONSTRUCTED_STATIC(ArbitratedClientManager, s_client);
 #if defined(__MINGW32__)
 __declspec(selectany)
 #endif
+#if defined(__ANDROID__)
+__attribute__((weak))
+#endif
     ClientManager *g_client;
 #if !defined(__MINGW32__)
 #pragma weak g_client
