@@ -14,6 +14,7 @@
 #include "erpc_error_handler.h"
 
 #include <iostream>
+#include <jni.h>
 
 using namespace erpcShim;
 using namespace erpc;

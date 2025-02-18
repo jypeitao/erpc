@@ -1,30 +1,23 @@
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
 
 android {
-    namespace = "com.dreamsmart.erpclib"
+    namespace = "com.dreamsmart.helloclient"
     compileSdk = 35
 
     defaultConfig {
+        applicationId = "com.dreamsmart.helloclient"
         minSdk = 29
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
         externalNativeBuild {
             cmake {
-                cppFlags("")
-                arguments(
-                    "-DUSE_KCONFIG=OFF",
-                    "-DCONFIG_ERPC_GENERATOR=n",
-                    "-DCONFIG_REQUIRE_ERPCGEN=y",
-                    "-DCONFIG_ERPC_EXAMPLES=y",
-                    "-DCONFIG_ERPC_HELLO_WORLD=y",
-                    "-DCONFIG_ERPC_HELLO_WORLD.c=n",
-                    "-DCONFIG_ERPC_HELLO_WORLD.cpp=y",
-                    "-DCONFIG_ERPC_LIB.cpp=n"
-                )
+                cppFlags += ""
                 arguments += "-DANDROID_STL=c++_shared"
             }
         }
@@ -39,12 +32,6 @@ android {
             )
         }
     }
-    externalNativeBuild {
-        cmake {
-            path("../../CMakeLists.txt")
-            version = "3.22.1"
-        }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -52,24 +39,30 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    prefab {
-        create("hello_world2_clientlib") {
-            headers = "../../examples/hello_world2/c/include"
-        }
-        create("hello_world2_serverlib") {
-            headers = "../../examples/hello_world2/c/include"
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
         }
     }
     buildFeatures {
-        prefabPublishing = true
+        prefab = true
     }
 }
 
+allprojects {
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
+    }
+}
 dependencies {
-
+    implementation(libs.erpc.spp.impl)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
+    implementation(project(":erpclib"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -20,6 +20,17 @@
 using namespace erpcShim;
 using namespace erpc;
 
+#ifdef __ANDROID__
+#include<android/log.h>
+#define LOG_TAG "hello_world_client"
+//#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define LOGE(fmt, ...)                                                                                                 \
+    ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, "[%s:%d:%s] " fmt "\n", __FILE_NAME__, __LINE__,           \
+                               __FUNCTION__, ##__VA_ARGS__))
+#else
+#define LOGE(fmt, ...)  printf(fmt, ##__VA_ARGS__)
+#endif
+
 namespace {
 
 ClientServerCommon *g_cs_common = nullptr;
@@ -110,11 +121,11 @@ bool hello_world_init_client(bool useTcp, const char *ip, int port)
     g_use_tcp = useTcp;
     if (g_use_tcp)
     {
-        g_transport = initTcp(ip, port, true);
+        g_transport = initTcp(ip, port, false);
     }
     else
     {
-        g_transport = initSpp(nullptr, true);
+        g_transport = initSpp(nullptr, false);
     }
 
     if (g_transport == nullptr)
@@ -178,11 +189,13 @@ void hello_world_destroy_client()
 
 bool hello_world_call_printText(const char *text)
 {
-    if (g_client == nullptr)
+    auto ret = false;
+    if (g_client != nullptr)
     {
-        return false;
+        ret = g_client->printText(text);
     }
-    return g_client->printText(text);
+    LOGE("ret = %d",ret);
+    return ret;
 }
 
 void hello_world_call_stopServer()

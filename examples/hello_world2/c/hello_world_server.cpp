@@ -22,148 +22,136 @@
 #include <functional>
 #include <thread>
 
+#ifdef __ANDROID__
+#include<android/log.h>
+#define LOG_TAG "hello_world_server"
+//#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define LOGE(fmt, ...)                                                                                                 \
+    ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, "[%s:%d:%s] " fmt "\n", __FILE_NAME__, __LINE__,           \
+                               __FUNCTION__, ##__VA_ARGS__))
+#else
+#define LOGE(fmt, ...)  printf(fmt, ##__VA_ARGS__)
+#endif
+
 using namespace erpcShim;
 using namespace erpc;
 
 namespace {
-std::atomic_bool g_server_run{false};
-std::atomic_bool g_use_tcp{true};
+    std::atomic_bool g_server_run{false};
+    std::atomic_bool g_use_tcp{true};
 
-Transport *g_transport = nullptr;
+    Transport *g_transport = nullptr;
 
-TextService_interface *g_TextService_interface = nullptr;
-TextService_service *g_TextService_service = nullptr;
-SimpleServer *g_server = nullptr;
+    TextService_interface *g_TextService_interface = nullptr;
+    TextService_service *g_TextService_service = nullptr;
+    SimpleServer *g_server = nullptr;
 
-MessageBufferFactory *g_MsgFactory = nullptr;
-BasicCodecFactory *g_BasicCodecFactory = nullptr;
+    MessageBufferFactory *g_MsgFactory = nullptr;
+    BasicCodecFactory *g_BasicCodecFactory = nullptr;
 
-std::thread g_thread;
+    std::thread g_thread;
 
-using PrintTextCall = std::function<void(const char *text)>;
-PrintTextCall g_call;
+    using PrintTextCall = std::function<void(const char *text)>;
+    PrintTextCall g_call;
 
-void wakeUp()
-{
-    if (g_use_tcp)
-    {
-        dynamic_cast<TCPTransport *>(g_transport)->close(true);
-    }
-    else
-    {
-        dynamic_cast<SPPTransport *>(g_transport)->close();
-    }
-}
-
-class TextService : public TextService_interface
-{
-    bool printText(const char *text) override
-    {
-        std::cout << text << std::endl;
-        if (g_call)
-        {
-            g_call(text);
-        }
-        return true;
-    }
-
-    void stopServer() override
-    {
-        g_server_run = false;
-        wakeUp();
-    }
-};
-
-class MyMessageBufferFactory : public MessageBufferFactory
-{
-public:
-    MessageBuffer create() override
-    {
-        auto *buf = new uint8_t[ERPC_DEFAULT_BUFFER_SIZE];
-        return { buf, ERPC_DEFAULT_BUFFER_SIZE };
-    }
-
-    void dispose(MessageBuffer *buf) override
-    {
-        erpc_assert(buf);
-        if (*buf)
-        {
-            delete[] buf->get();
+    void wakeUp() {
+        if (g_use_tcp) {
+            dynamic_cast<TCPTransport *>(g_transport)->close(true);
+        } else {
+            dynamic_cast<SPPTransport *>(g_transport)->close();
         }
     }
-};
 
-Transport *initTcp(const char *ip, uint16_t port, bool asServer)
-{
-    static std::string sIp;
-    sIp = ip;
-    auto transport = new TCPTransport(sIp.c_str(), port, asServer);
-    Crc16 crc16;
-    transport->setCrc16(&crc16);
-    auto status = transport->open();
-    if (status != kErpcStatus_Success)
-    {
-        delete transport;
-        return nullptr;
+    class TextService : public TextService_interface {
+        bool printText(const char *text) override {
+            LOGE("printText by remote:%s",text);
+            if (g_call) {
+                g_call(text);
+            }
+            return true;
+        }
+
+        void stopServer() override {
+            LOGE("stopServer by remote");
+            g_server_run = false;
+            wakeUp();
+        }
+    };
+
+    class MyMessageBufferFactory : public MessageBufferFactory {
+    public:
+        MessageBuffer create() override {
+            auto *buf = new uint8_t[ERPC_DEFAULT_BUFFER_SIZE];
+            return {buf, ERPC_DEFAULT_BUFFER_SIZE};
+        }
+
+        void dispose(MessageBuffer *buf) override {
+            erpc_assert(buf);
+            if (*buf) {
+                delete[] buf->get();
+            }
+        }
+    };
+
+    Transport *initTcp(const char *ip, uint16_t port, bool asServer) {
+        static std::string sIp;
+        sIp = ip;
+        auto transport = new TCPTransport(sIp.c_str(), port, asServer);
+        Crc16 crc16;
+        transport->setCrc16(&crc16);
+        auto status = transport->open();
+        if (status != kErpcStatus_Success) {
+            delete transport;
+            return nullptr;
+        }
+        return transport;
     }
-    return transport;
-}
 
-void destroyTcp(Transport *transport)
-{
-    auto *t = dynamic_cast<TCPTransport *>(transport);
-    t->close();
-    delete t;
-}
-
-Transport *initSpp(const char *address, bool asServer)
-{
-    auto transport = new SPPTransport(asServer);
-    Crc16 crc16;
-    transport->setCrc16(&crc16);
-
-    auto status = transport->init(nullptr);
-    if (status != kErpcStatus_Success)
-    {
-        delete transport;
-        return nullptr;
+    void destroyTcp(Transport *transport) {
+        auto *t = dynamic_cast<TCPTransport *>(transport);
+        t->close();
+        delete t;
     }
 
-    status = transport->open(address);
-    if (status != kErpcStatus_Success)
-    {
-        transport->destroy();
-        delete transport;
-        return nullptr;
+    Transport *initSpp(const char *address, bool asServer) {
+        auto transport = new SPPTransport(asServer);
+        Crc16 crc16;
+        transport->setCrc16(&crc16);
+
+        auto status = transport->init(nullptr);
+        if (status != kErpcStatus_Success) {
+            delete transport;
+            return nullptr;
+        }
+
+        status = transport->open(address);
+        if (status != kErpcStatus_Success) {
+            transport->destroy();
+            delete transport;
+            return nullptr;
+        }
+
+        return transport;
     }
 
-    return transport;
-}
-
-void destroySpp(Transport *transport)
-{
-    auto *t = dynamic_cast<SPPTransport *>(transport);
-    t->close();
-    t->destroy();
-    delete t;
-}
+    void destroySpp(Transport *transport) {
+        auto *t = dynamic_cast<SPPTransport *>(transport);
+        t->close();
+        t->destroy();
+        delete t;
+    }
 
 } // namespace
 
-void hello_world_init_server(bool useTcp, printTextCall call)
-{
+void hello_world_init_server(bool useTcp, printTextCall call) {
     g_use_tcp = useTcp;
-    if (g_use_tcp)
-    {
+    if (g_use_tcp) {
         g_transport = initTcp(ERPC_HOSTNAME, ERPC_PORT, true);
-    }
-    else
-    {
+    } else {
         g_transport = initSpp(nullptr, true);
     }
 
-    if (g_transport == nullptr)
-    {
+    if (g_transport == nullptr) {
         return;
     }
 
@@ -187,13 +175,11 @@ void hello_world_init_server(bool useTcp, printTextCall call)
     /* add custom service implementation to the server */
     g_server->addService(g_TextService_service);
 
-    std::cout << "Starting server." << std::endl;
+    LOGE("Starting server.");
 }
 
-void hello_world_start_server()
-{
-    if (g_server_run)
-    {
+void hello_world_start_server() {
+    if (g_server_run) {
         return;
     }
 
@@ -201,25 +187,25 @@ void hello_world_start_server()
         g_server_run = true;
 
         erpc_status_t status;
-        while (g_server_run)
-        {
+        while (g_server_run) {
             /* poll for requests */
+            LOGE("g_server poll.");
             status = g_server->poll();
+            LOGE("poll out:%d",status);
 
             /* handle error status */
-            if (status != kErpcStatus_Success)
-            {
+            if (status != kErpcStatus_Success) {
                 /* print error description */
                 erpc_error_handler(status, 0);
             }
         }
+
+        LOGE("g_server exit");
     });
 }
 
-void hello_world_stop_server()
-{
-    if (!g_server_run)
-    {
+void hello_world_stop_server() {
+    if (!g_server_run) {
         return;
     }
 
@@ -230,47 +216,37 @@ void hello_world_stop_server()
     g_thread.join();
 }
 
-void hello_world_destroy_server()
-{
-    if (g_transport != nullptr)
-    {
-        if (g_use_tcp)
-        {
+void hello_world_destroy_server() {
+    if (g_transport != nullptr) {
+        if (g_use_tcp) {
             destroyTcp(g_transport);
-        }
-        else
-        {
+        } else {
             destroySpp(g_transport);
         }
         g_transport = nullptr;
     }
 
-    if (g_server != nullptr)
-    {
+    if (g_server != nullptr) {
         delete g_server;
         g_server = nullptr;
     }
 
-    if (g_TextService_service != nullptr)
-    {
+    if (g_TextService_service != nullptr) {
         delete g_TextService_service;
         g_TextService_service = nullptr;
     }
 
-    if (g_TextService_interface != nullptr)
-    {
+    if (g_TextService_interface != nullptr) {
         delete g_TextService_interface;
         g_TextService_interface = nullptr;
     }
 
-    if (g_BasicCodecFactory != nullptr)
-    {
+    if (g_BasicCodecFactory != nullptr) {
         delete g_BasicCodecFactory;
         g_BasicCodecFactory = nullptr;
     }
 
-    if (g_MsgFactory != nullptr)
-    {
+    if (g_MsgFactory != nullptr) {
         delete g_MsgFactory;
         g_MsgFactory = nullptr;
     }

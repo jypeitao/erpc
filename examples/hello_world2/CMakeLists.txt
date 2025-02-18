@@ -138,6 +138,10 @@ if (CONFIG_ERPC_HELLO_WORLD.cpp)
 
     erpc_link_c_library2(TARGET ${clint_name_lib} CONFIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/c)
     erpc_link_c_library2(TARGET ${server_name_lib} CONFIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/c)
+    if (ANDROID)
+        target_link_libraries(${clint_name_lib} PRIVATE android log)
+        target_link_libraries(${server_name_lib} PRIVATE android log)
+    endif ()
 endif ()
 
 if (CONFIG_ERPC_HELLO_WORLD.c)

@@ -30,25 +30,25 @@ erpc_status_t SPPTransport::underlyingReceive(uint8_t *data, uint32_t size)
 
     size_t length;
     int status = 0;
-
+    status = m_api->receive(data, size, &length);
     // Loop until all requested data is received.
-    while (size > 0U)
-    {
-        status = m_api->receive(data, size, &length);
-        if (status != 0)
-        {
-            break;
-        }
-
-        // TODO length is 0 ?? break ??
-        if (length == 0)
-        {
-            LOGW("wow, receive is zero");
-        }
-
-        size -= length;
-        data += length;
-    }
+//    while (size > 0U)
+//    {
+//        status = m_api->receive(data, size, &length);
+//        if (status != 0)
+//        {
+//            break;
+//        }
+//
+//        // TODO length is 0 ?? break ??
+//        if (length == 0)
+//        {
+//            LOGW("wow, receive is zero");
+//        }
+//
+//        size -= length;
+//        data += length;
+//    }
 
     return static_cast<erpc_status_t>(status);
 }
