@@ -51,6 +51,17 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    prefab {
+        create("hello_world2_clientlib") {
+            headers = "../../examples/hello_world2/c/include"
+        }
+        create("hello_world2_serverlib") {
+            headers = "../../examples/hello_world2/c/include"
+        }
+    }
+    buildFeatures {
+        prefabPublishing = true
+    }
 }
 
 dependencies {

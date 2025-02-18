@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "hello_world_client.h"
+#include "include/hello_world_client.h"
 #include "hello_world_client.hpp"
 #include "config.h"
 
